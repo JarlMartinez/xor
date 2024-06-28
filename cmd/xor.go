@@ -10,9 +10,11 @@ import (
 )
 
 var isHex bool
+var outFormat string
 
 func init() {
 	rootCmd.PersistentFlags().BoolVar(&isHex, "hex", false, "specify if entry value is hex")
+	rootCmd.PersistentFlags().StringVar(&outFormat, "out", "ascii", "set the output format. hex | ascii")
 }
 
 var rootCmd = &cobra.Command{
@@ -42,7 +44,12 @@ var rootCmd = &cobra.Command{
 			out[i] = buf1[i] ^ buf2[i%len(buf2)]
 		}
 
-		fmt.Printf("%x\n", out)
+		switch outFormat {
+		case "hex":
+			fmt.Printf("%x\n", out)
+		case "ascii":
+			fmt.Printf("%s\n", string(out))
+		}
 	},
 }
 
