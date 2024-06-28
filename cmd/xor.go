@@ -9,12 +9,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var isHex bool
 var outFormat string
 
 func init() {
-	rootCmd.PersistentFlags().BoolVar(&isHex, "hex", false, "specify if entry value is hex")
-	rootCmd.PersistentFlags().StringVar(&outFormat, "out", "hex", "set the output format. hex | ascii")
+	rootCmd.PersistentFlags().StringVar(&outFormat, "out", "all", "set the output format. hex | ascii | all")
+}
+
+func Execute() {
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
 }
 
 var rootCmd = &cobra.Command{
@@ -24,18 +29,23 @@ var rootCmd = &cobra.Command{
 		var buf2 []byte
 		var err error
 
-		if isHex {
-			buf1, err = hex.DecodeString(args[0])
+		if isHex(&args[0]) {
+			buf1, err = hex.DecodeString(args[0][2:]) // trim out 0x
 			if err != nil {
-				log.Fatal("failed to decode hex1: " + err.Error())
-			}
-
-			buf2, err = hex.DecodeString(args[1])
-			if err != nil {
-				log.Fatal("failed to decode hex2: " + err.Error())
+				log.Fatal("failed to decode arg1 as hex: " + err.Error())
 			}
 		} else {
+			// treat as plaintext
 			buf1 = []byte(args[0])
+		}
+
+		if isHex(&args[1]) {
+			buf2, err = hex.DecodeString(args[1][2:]) // trim out 0x
+			if err != nil {
+				log.Fatal("failed to arg2 as hex: " + err.Error())
+			}
+		} else {
+			// treat as plaintext
 			buf2 = []byte(args[1])
 		}
 
@@ -49,13 +59,13 @@ var rootCmd = &cobra.Command{
 			fmt.Printf("%x\n", out)
 		case "ascii":
 			fmt.Printf("%s\n", string(out))
+		case "all":
+			fmt.Printf("\thex:   %0x\n", out)
+			fmt.Printf("\tascii:  %s\n", string(out))
 		}
 	},
 }
 
-func Execute() {
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+func isHex(in *string) bool {
+	return (*in)[0] == '0' && (*in)[1] == 'x'
 }
