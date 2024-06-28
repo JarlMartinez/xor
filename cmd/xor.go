@@ -14,7 +14,7 @@ var outFormat string
 
 func init() {
 	rootCmd.PersistentFlags().BoolVar(&isHex, "hex", false, "specify if entry value is hex")
-	rootCmd.PersistentFlags().StringVar(&outFormat, "out", "ascii", "set the output format. hex | ascii")
+	rootCmd.PersistentFlags().StringVar(&outFormat, "out", "hex", "set the output format. hex | ascii")
 }
 
 var rootCmd = &cobra.Command{
