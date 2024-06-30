@@ -32,15 +32,18 @@ var rootCmd = &cobra.Command{
 			log.Fatal("failed reading stdin: ", err.Error())
 		}
 
-		var in string
+		var in1 string
+		var in2 string
 
 		if len(stdi) > 0 {
-			in = string(stdi)
+			in1 = string(stdi)
+			in2 = args[0]
 		} else {
-			in = args[0]
+			in1 = args[0]
+			in1 = args[1]
 		}
 
-		buf, err := xor.Perofm(in, args[1])
+		buf, err := xor.Perofm(in1, in2)
 		if err != nil {
 			log.Fatal("failed to perform xor: " + err.Error())
 		}
