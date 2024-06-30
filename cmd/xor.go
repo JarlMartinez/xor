@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 
@@ -25,7 +26,21 @@ func Execute() {
 var rootCmd = &cobra.Command{
 	Use: "",
 	Run: func(cmd *cobra.Command, args []string) {
-		buf, err := xor.Perofm(args[0], args[1])
+
+		stdi, err := io.ReadAll(cmd.InOrStdin())
+		if err != nil {
+			log.Fatal("failed reading stdin: ", err.Error())
+		}
+
+		var in string
+
+		if len(stdi) > 0 {
+			in = string(stdi)
+		} else {
+			in = args[0]
+		}
+
+		buf, err := xor.Perofm(in, args[1])
 		if err != nil {
 			log.Fatal("failed to perform xor: " + err.Error())
 		}

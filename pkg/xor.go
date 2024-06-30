@@ -1,33 +1,20 @@
 package xor
 
 import (
+	"encoding/base64"
 	"encoding/hex"
 	"fmt"
 )
 
 func Perofm(a, b string) (*[]uint8, error) {
-	var buf1 []byte
-	var buf2 []byte
-	var err error
-
-	if isHex(&a) {
-		buf1, err = hex.DecodeString(a[2:]) // trim out 0x
-		if err != nil {
-			return nil, fmt.Errorf("decoding hex a input: %s", err)
-		}
-	} else {
-		// treat as plaintext
-		buf1 = []byte(a)
+	buf1, err := parseInput(a)
+	if err != nil {
+		return nil, fmt.Errorf("parsing input a: %e", err)
 	}
 
-	if isHex(&b) {
-		buf2, err = hex.DecodeString(b[2:]) // trim out 0x
-		if err != nil {
-			return nil, fmt.Errorf("decoding hex b input: %s", err)
-		}
-	} else {
-		// treat as plaintext
-		buf2 = []byte(b)
+	buf2, err := parseInput(b)
+	if err != nil {
+		return nil, fmt.Errorf("parsing input b: %w", err)
 	}
 
 	out := make([]uint8, len(buf1))
@@ -36,6 +23,28 @@ func Perofm(a, b string) (*[]uint8, error) {
 	}
 
 	return &out, nil
+}
+
+func parseInput(in string) ([]byte, error) {
+	if isHex(&in) {
+		buf, err := hex.DecodeString(in[2:]) // trim out 0x
+		if err != nil {
+			return nil, fmt.Errorf("decoding as hex: %w", err)
+		}
+		return buf, nil
+	}
+	// see if it's base64
+	buf := make([]byte, base64.StdEncoding.DecodedLen(len(in)))
+	_, err := base64.StdEncoding.Decode(buf, []byte(in))
+	if err == nil {
+		return buf, nil
+	}
+	if _, ok := err.(base64.CorruptInputError); ok {
+		// treat as plaintext
+		return []byte(in), nil
+	} else {
+		return nil, fmt.Errorf("decoding as base64: %w", err)
+	}
 }
 
 func isHex(in *string) bool {
